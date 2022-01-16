@@ -1,0 +1,87 @@
+<canvas id="ctx" width="1000" height="800"></canvas>
+<script>
+var img = {};
+img.car = new Image();
+img.car.src = "car.png";
+var ctx = document.getElementById("ctx").getContext("2d");
+var sendpoint = 0;
+	document.onmousemove = function(mouse){
+		mousex = mouse.clientX - document.getElementById("ctx").getBoundingClientRect().left;
+		mousey = mouse.clientY - document.getElementById("ctx").getBoundingClientRect().top;
+	}
+	getdistance = function(self,somp){
+		return Math.sqrt(Math.pow(self.x-somp.x,2) + Math.pow(self.y-somp.y,2));
+	}
+	var player = {
+	x:30,
+	y:30,
+	angle2:5080,//I didn’t think of anything better how to make a large number so that you can add an angle to it and subtract an angle. there is an opportunity to put at least 200000 here, it doesn’t matter
+	angle4:0,
+	}
+	var point = {
+	x:30,
+	y:30,
+	}
+	
+	drawcar = function(player) {
+	
+			ctx.save();
+			
+		
+		ctx.translate(player.x,player.y);
+		ctx.rotate(player.angle2 * Math.PI / 180);//if i put player.angle here it will simulate drifting :)
+		ctx.translate(-player.x,-player.y);
+		ctx.drawImage(img.car,player.x-70/2,player.y-60/2,70,60);
+		
+		ctx.restore();
+};
+document.onmousedown = function(event){
+	sendpoint = 1;
+	}
+document.onmouseup = function(event){
+sendpoint = 0;
+}
+setInterval(function(){
+ctx.clearRect(0,0,1000,800)
+ctx.save();
+ctx.fillStyle = "#ba8602";
+ctx.fillRect(0,0,1000,800);
+ctx.restore();
+if(sendpoint === 1){
+point.x = mousex
+point.y = mousey
+}
+if(getdistance(point,player)>25){
+			var diffX = point.x - player.x;
+			var diffY = point.y - player.y;
+	
+
+	player.angle = Math.atan2(diffY,diffX) / Math.PI * 180;
+		//if(player.angle < 0){
+	//player.angle =  360 + player.angle;//I don't remember, but it doesn't seem to work, it's possible to hide
+	//}
+	console.log(player.angle + 'per');
+	console.log(player.angle2 + 'sec');
+	player.angle3 = player.angle - player.anglepre//I don’t remember why the angle was not needed on the previous frame, but this action is necessary to compare the difference between the angle of the car’s movement and the angle to the waypoint
+
+	//if i put it here if(player.angle3 < 0.1) then in some situations the car will not turn completely, but leave this very 0.1 degree until the full turn
+	// it is possible to put some kind of script here, so that when the car is already driving straight, its trajectory is equal to player.angle. but as soon as I try to make a similar script, the car starts to go straight to the waypoint, ignoring the smooth turn
+	if(player.angle3 < 0){//left turn
+	player.angle2 = player.angle2 - 2;//if I put player.angle here, then in this case, when the angle passes from -178, -179,180,179,178. The car, instead of continuing to turn to the right, will make a 360-degree circle through the left side :/
+	}
+	if(player.angle3 > 0){//right turn
+	player.angle2 = player.angle2 + 2;//if i put the script if(player.angle < 0){player.angle = 360 + player.angle} then the situation will repeat itself in the same way as in the case above. at the transition of the angle from 3,2,1,0,359,358. The car, instead of continuing to turn left, will make a 360-degree circle through the right side
+	}
+		//console.log(player.angle4 + 'four');
+	player.spdX = Math.cos(player.angle2/180*Math.PI)*5;
+	player.spdY = Math.sin(player.angle2/180*Math.PI)*5;
+		player.x += player.spdX;
+	player.y += player.spdY;
+	player.anglepre = player.angle
+}
+ctx.fillRect(point.x-5,point.y-5,10,10);
+//ctx.fillRect(player.x-10,player.y-10,20,20);
+drawcar(player)
+
+},1000/25);
+</script>
